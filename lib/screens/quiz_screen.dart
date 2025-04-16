@@ -89,18 +89,19 @@ class _QuizScreenState extends State<QuizScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        title: const Text("Quiz Completed"),
-        content: Text("Your score: $score / ${_questions.length}"),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            },
-            child: const Text("Restart"),
-          )
-        ],
-      ),
+      builder:
+          (_) => AlertDialog(
+            title: const Text("🎉 Quiz Completed"),
+            content: Text("Your score: $score / ${_questions.length}"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+                child: const Text("Restart"),
+              ),
+            ],
+          ),
     );
   }
 
@@ -113,19 +114,11 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF6F6F6),
       appBar: AppBar(
-        title: const Text("Quiz In Progress"),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Center(
-              child: Text(
-                "⏱ $timeLeft s",
-                style: const TextStyle(fontSize: 18),
-              ),
-            ),
-          )
-        ],
+        backgroundColor: Colors.indigo,
+        title: const Text("🧠 Quiz"),
+        centerTitle: true,
       ),
       body: FutureBuilder<List<Question>>(
         future: _questionsFuture,
@@ -138,7 +131,6 @@ class _QuizScreenState extends State<QuizScreen> {
             _questions = snapshot.data!;
             final question = _questions[currentIndex];
 
-            // Ensure the timer starts once per question render
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (_timer == null || !_timer!.isActive) {
                 startTimer();
@@ -148,42 +140,79 @@ class _QuizScreenState extends State<QuizScreen> {
             return Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  LinearProgressIndicator(
+                    value: timeLeft / 10,
+                    color: Colors.redAccent,
+                    backgroundColor: Colors.grey[300],
+                  ),
+                  const SizedBox(height: 16),
                   Text(
-                    "Question ${currentIndex + 1} / ${_questions.length}",
-                    style: const TextStyle(fontSize: 18),
+                    "Question ${currentIndex + 1} of ${_questions.length}",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    question.question,
-                    style: const TextStyle(fontSize: 20),
-                  ),
-                  const SizedBox(height: 24),
-                  ...question.allAnswers.map((answer) {
-                    Color? color;
-                    if (answered) {
-                      if (answer == question.correctAnswer) {
-                        color = Colors.green;
-                      } else if (answer == selectedAnswer) {
-                        color = Colors.red;
-                      } else {
-                        color = Colors.grey[300];
-                      }
-                    }
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: color,
-                          foregroundColor: Colors.black,
-                        ),
-                        onPressed: () => checkAnswer(answer, question),
-                        child: Text(answer),
+                  Expanded(
+                    child: Card(
+                      elevation: 6,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                    );
-                  }),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              question.question,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            ...question.allAnswers.map((answer) {
+                              Color? color;
+                              if (answered) {
+                                if (answer == question.correctAnswer) {
+                                  color = Colors.green;
+                                } else if (answer == selectedAnswer) {
+                                  color = Colors.red;
+                                } else {
+                                  color = Colors.grey[300];
+                                }
+                              }
+
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 6,
+                                ),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: color ?? Colors.white,
+                                    foregroundColor: Colors.black,
+                                    padding: const EdgeInsets.all(14),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      side: const BorderSide(
+                                        color: Colors.black12,
+                                      ),
+                                    ),
+                                  ),
+                                  onPressed:
+                                      () => checkAnswer(answer, question),
+                                  child: Text(answer),
+                                ),
+                              );
+                            }).toList(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             );
